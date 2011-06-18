@@ -32,7 +32,7 @@ typedef struct
 {
 	int flag;
 	const char *name;
-} flag_type;
+} flag_w_name_type;
 
 
 
@@ -61,7 +61,7 @@ static void info_out_list(textblock *tb, const char *list[], size_t count)
 /*
  *
  */
-static size_t info_collect(textblock *tb, const flag_type list[], size_t max,
+static size_t info_collect(textblock *tb, const flag_w_name_type list[], size_t max,
 		const bitflag flags[OF_SIZE], const char *recepticle[])
 {
 	size_t i, count = 0;
@@ -78,7 +78,7 @@ static size_t info_collect(textblock *tb, const flag_type list[], size_t max,
 
 /*** Big fat data tables ***/
 
-static const flag_type pval_flags[] =
+static const flag_w_name_type pval_flags[] =
 {
 	{ OF_STR,     "strength" },
 	{ OF_INT,     "intelligence" },
@@ -95,7 +95,7 @@ static const flag_type pval_flags[] =
 	{ OF_MIGHT,   "shooting power" },
 };
 
-static const flag_type immunity_flags[] =
+static const flag_w_name_type immunity_flags[] =
 {
 	{ OF_IM_ACID, "acid" },
 	{ OF_IM_ELEC, "lightning" },
@@ -103,7 +103,7 @@ static const flag_type immunity_flags[] =
 	{ OF_IM_COLD, "cold" },
 };
 
-static const flag_type vuln_flags[] =
+static const flag_w_name_type vuln_flags[] =
 {
 	{ OF_VULN_ACID, "acid" },
 	{ OF_VULN_ELEC, "electricity" },
@@ -111,7 +111,7 @@ static const flag_type vuln_flags[] =
 	{ OF_VULN_COLD, "cold" },
 };
 
-static const flag_type resist_flags[] =
+static const flag_w_name_type resist_flags[] =
 {
 	{ OF_RES_ACID,  "acid" },
 	{ OF_RES_ELEC,  "lightning" },
@@ -128,7 +128,7 @@ static const flag_type resist_flags[] =
 	{ OF_RES_DISEN, "disenchantment" },
 };
 
-static const flag_type protect_flags[] =
+static const flag_w_name_type protect_flags[] =
 {
 	{ OF_RES_FEAR,  "fear" },
 	{ OF_RES_BLIND, "blindness" },
@@ -136,7 +136,7 @@ static const flag_type protect_flags[] =
 	{ OF_RES_STUN,  "stunning" },
 };
 
-static const flag_type ignore_flags[] =
+static const flag_w_name_type ignore_flags[] =
 {
 	{ OF_IGNORE_ACID, "acid" },
 	{ OF_IGNORE_ELEC, "electricity" },
@@ -144,7 +144,7 @@ static const flag_type ignore_flags[] =
 	{ OF_IGNORE_COLD, "cold" },
 };
 
-static const flag_type sustain_flags[] =
+static const flag_w_name_type sustain_flags[] =
 {
 	{ OF_SUST_STR, "strength" },
 	{ OF_SUST_INT, "intelligence" },
@@ -154,7 +154,7 @@ static const flag_type sustain_flags[] =
 	{ OF_SUST_CHR, "charisma" },
 };
 
-static const flag_type misc_flags[] =
+static const flag_w_name_type misc_flags[] =
 {
 	{ OF_BLESSED, "Blessed by the gods" },
 	{ OF_SLOW_DIGEST, "Slows your metabolism" },
@@ -1134,7 +1134,7 @@ static void describe_flavor_text(textblock *tb, const object_type *o_ptr)
 {
 	/* Display the known artifact description */
 	if (!OPT(birth_randarts) && o_ptr->artifact &&
-			object_is_known(o_ptr) && o_ptr->artifact->text)
+			object_name_is_visible(o_ptr) && o_ptr->artifact->text)
 		textblock_append(tb, "%s\n\n", o_ptr->artifact->text);
 
 	/* Display the known object description */
@@ -1209,6 +1209,23 @@ static textblock *object_info_out(const object_type *o_ptr, oinfo_detail_t mode)
 	if (!full && !known)
 	{
 		textblock_append(tb, "You do not know the full extent of this item's powers.\n");
+		if (SENSING_REVEALS_FLAG_COUNT) {
+			if (object_was_sensed(o_ptr)) {
+				int unlearned = object_num_unlearned_flags(o_ptr);
+				switch(unlearned) {
+					case 0:
+						textblock_append(tb, "It has no unknown flags.\n");
+						break;
+					case 1:
+						textblock_append(tb, "It has 1 unknown flag.\n", unlearned);
+						break;
+					default:
+						textblock_append(tb, "It has %d unknown flags.\n", unlearned);
+						break;
+				}
+			}
+		}
+
 		something = TRUE;
 	}
 

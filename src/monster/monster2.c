@@ -3127,7 +3127,6 @@ void flush_all_monster_messages(void)
    size_mon_hist = 0;
 }
 
-/* XXX Eddie This is ghastly.  The monster should have known_flags similar to in the object_type structure. */
 typedef struct {
 	int idx;
 	int flag;

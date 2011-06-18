@@ -46,7 +46,6 @@ static quality_squelch_struct quality_mapping[] =
 	{ TYPE_ARMOR_BODY,		TV_SOFT_ARMOR,	0,		SV_UNKNOWN },
 	{ TYPE_ARMOR_CLOAK,		TV_CLOAK,		SV_CLOAK, SV_FUR_CLOAK },
 	{ TYPE_ARMOR_CLOAK,		TV_CLOAK,		SV_ETHEREAL_CLOAK, SV_ETHEREAL_CLOAK },
-/* XXX Eddie need to assert SV_CLOAK < SV_FUR_CLOAK < SV_ELVEN_CLOAK */
 	{ TYPE_ARMOR_ELVEN_CLOAK, TV_CLOAK,		SV_ELVEN_CLOAK,	SV_ELVEN_CLOAK },
 	{ TYPE_ARMOR_SHIELD,	TV_SHIELD,		0,		SV_UNKNOWN },
 	{ TYPE_ARMOR_HEAD,		TV_HELM,		0,		SV_UNKNOWN },
@@ -270,16 +269,8 @@ byte squelch_level_of(const object_type *o_ptr)
 
 	object_flags_known(o_ptr, f);
 
-	/* CC: we need to redefine "bad" with multiple pvals
-	 * At the moment we use "all pvals known and negative" */
-	for (i = 0; i < o_ptr->num_pvals; i++) {
-		if (!object_this_pval_is_visible(o_ptr, i) ||
-			(o_ptr->pval[i] > 0))
-			break;
-
-		if (i == o_ptr->num_pvals)
-			return SQUELCH_BAD;
-	}
+	if (object_is_known_bad(o_ptr))
+		return SQUELCH_BAD;
 
 	/* Deal with jewelry specially. */
 	if (object_is_jewelry(o_ptr))
@@ -323,8 +314,7 @@ byte squelch_level_of(const object_type *o_ptr)
 				break;
 
 			case INSCRIP_EXCELLENT:
-				/* have to assume splendid until you have tested it */
-				if (object_was_worn(o_ptr))
+				if (object_is_known_unsplendid(o_ptr))
 				{
 					if (object_high_resist_is_possible(o_ptr))
 						value = SQUELCH_EXCELLENT_NO_SPL;
@@ -337,7 +327,7 @@ byte squelch_level_of(const object_type *o_ptr)
 				}
 				break;
 
-			case INSCRIP_STRANGE: /* XXX Eddie perhaps some strange count as something else */
+			case INSCRIP_STRANGE:
 			case INSCRIP_SPLENDID:
 				value = SQUELCH_ALL;
 				break;
@@ -346,15 +336,8 @@ byte squelch_level_of(const object_type *o_ptr)
 				value = SQUELCH_MAX;
 				break;
 
-			/* This is the interesting case */
 			case INSCRIP_MAGICAL:
-				value = SQUELCH_GOOD;
-				if ((object_attack_plusses_are_visible(o_ptr) || (randcalc_valid(o_ptr->kind->to_h, o_ptr->to_h) && randcalc_valid(o_ptr->kind->to_d, o_ptr->to_d))) &&
-				    (object_defence_plusses_are_visible(o_ptr) || (randcalc_valid(o_ptr->kind->to_a, o_ptr->to_a))) &&
-				    (o_ptr->to_h <= randcalc(o_ptr->kind->to_h, 0, MINIMISE)) &&
-				    (o_ptr->to_d <= randcalc(o_ptr->kind->to_d, 0, MINIMISE)) &&
-				    (o_ptr->to_a <= randcalc(o_ptr->kind->to_a, 0, MINIMISE)))
-					value = SQUELCH_BAD;
+				value = object_is_known_bad(o_ptr) ? SQUELCH_BAD : SQUELCH_GOOD;
 				break;
 
 
@@ -365,8 +348,10 @@ byte squelch_level_of(const object_type *o_ptr)
 	}
 	else
 	{
-		if (object_was_worn(o_ptr))
-			value = SQUELCH_EXCELLENT_NO_SPL; /* object would be sensed if it were splendid */
+		if (object_is_known_not_excellent(o_ptr))
+			value = SQUELCH_GOOD;
+		else if (object_is_known_unsplendid(o_ptr))
+			value = SQUELCH_EXCELLENT_NO_SPL;
 		else if (object_is_known_not_artifact(o_ptr))
 			value = SQUELCH_ALL;
 		else

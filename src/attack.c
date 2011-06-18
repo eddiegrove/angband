@@ -219,7 +219,7 @@ bool py_attack_real(int y, int x, bool *fear) {
 	}
 
 	/* Learn by use for other equipped items */
-	wieldeds_notice_on_attack();
+	wieldeds_notice_offweapon_attack_plusses();
 
 	/* Apply the player damage bonuses */
 	dmg += p_ptr->state.to_d;

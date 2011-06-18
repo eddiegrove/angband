@@ -75,7 +75,6 @@ bool check_hit(int power, int level)
 	ac = p_ptr->state.ac + p_ptr->state.to_a;
 
 	/* if the monster checks vs ac, the player learns ac bonuses */
-	/* XXX Eddie should you only learn +ac on miss, -ac on hit?  who knows */
 	object_notice_on_defend();
 
 	/* Check if the player was hit */

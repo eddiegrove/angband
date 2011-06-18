@@ -191,6 +191,10 @@ bool flag_on_dbg(bitflag *flags, const size_t size, const int flag, const char *
 	const size_t flag_offset = FLAG_OFFSET(flag);
 	const int flag_binary = FLAG_BINARY(flag);
 
+	/* EFG this assert needs to be in most functions, or else the need for
+	 * it removed.  Without it, got a crash with no ability to backtrace. */
+	assert (flag >= FLAG_START);
+
 	if (flag_offset >= size)
 	{
 		quit_fmt("Error in flag_on(%s, %s): FlagID[%d] Size[%u] FlagOff[%u] FlagBV[%d]\n",
